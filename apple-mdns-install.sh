@@ -154,6 +154,12 @@ setup_ntpd () {
 
 setup_upstart () {
    if [ -d /etc/init ]; then
+      uses_upstart="";
+      is_installed=$(dpkg-query -W -f='${Status}' "upstart" 2>&1)
+      if [ "${is_installed}" != "${is_installed#install ok installed*}" ]; then
+         uses_upstart="yes"
+      fi 
+
       if [ ! -f /etc/init/mdns.conf ]; then
          notif "adding upstart profile for mdns..."
          
@@ -178,8 +184,10 @@ setup_upstart () {
          notif "upstart profile for mdns already present, not touching it..."
       fi
       
-      update-rc.d -f mdns remove > /dev/null 2>&1
-      
+      if [ "yes" = "${uses_upstart}" ]; then 
+         update-rc.d -f mdns remove > /dev/null 2>&1
+      fi 
+ 
       if [ "${NEEDS_NTPD}" -ne 0 ]; then
          if [ ! -f /etc/init/openntpd.conf ]; then
             notif "adding upstart profile for openntpd..."
@@ -203,7 +211,9 @@ setup_upstart () {
             notif "upstart profile for openntpd already present, not touching it..."
          fi
          
-         update-rc.d -f openntpd remove > /dev/null 2>&1
+         if [ "yes" = "${uses_upstart}" ]; then 
+            update-rc.d -f openntpd remove > /dev/null 2>&1
+         fi 
       fi
    else
       notif "system doesn't use upstart, so not adding any profiles..."
