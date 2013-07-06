@@ -111,7 +111,7 @@ install_mdnsresponder () {
    
    notif "installing mdnsresponder..."
    
-   checkinstall -y -D --exclude=/etc/nsswitch.conf --pkgname="${PKGNAME}" make os=linux install
+   checkinstall -y -D --fstrans=no --exclude=/etc/nsswitch.conf --pkgname="${PKGNAME}" make os=linux install
 }
 
 setup_ntpd () {

@@ -115,7 +115,7 @@ install_dnsextd () {
 
 	notif "installing dnsextd..."
 
-	checkinstall -y -D --pkgname="${PKGNAME}" cp "${DDIR}/mdns-patched/mDNSPosix/build/prod/dnsextd" /usr/sbin
+	checkinstall -y -D --fstrans=no --pkgname="${PKGNAME}" cp "${DDIR}/mdns-patched/mDNSPosix/build/prod/dnsextd" /usr/sbin
 }
 
 update_bind_options () {
