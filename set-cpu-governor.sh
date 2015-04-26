@@ -44,9 +44,9 @@ check_governor () {
 }
 
 set_default_governor () {
-   if [ -f "${CPUFREQ_DEF}" ]; then
-      has_gov=$(grep "GOVERNOR=\"${GOVERNOR}\"" "${CPUFREQ_DEF}")
-      has_enb=$(grep "ENABLE=\"true\"" "${CPUFREQ_DEF}")
+   if [ -d $(dirname "${CPUFREQ_DEF}") ]; then
+      has_gov=$(grep "GOVERNOR=\"${GOVERNOR}\"" "${CPUFREQ_DEF}" 2>/dev/null)
+      has_enb=$(grep "ENABLE=\"true\"" "${CPUFREQ_DEF}" 2>/dev/null)
       
       if [ ! -z "${has_enb}" ] && [ ! -z "${has_gov}" ]; then
          notif "governor \"${GOVERNOR}\" already configured in ${CPUFREQ_DEF}"
