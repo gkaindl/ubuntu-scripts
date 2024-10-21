@@ -110,7 +110,7 @@ patch_build_rules () {
    SRCPATH="${DDIR}"/"$(ls "${DDIR}" | grep -i "${BIND_PACKAGE}" | head -n 1)"
    
    TMP=$(mktemp)
-   sed 's/\(configure:\)/EXTRA_FEATURES+=--with-dlz-mysql=yes\n\n\1/' "${SRCPATH}/debian/rules" > "${TMP}"
+   sed 's/\(\-\-with\-json\-c\)/--with-dlz-mysql=yes \\\n\1/' "${SRCPATH}/debian/rules" > "${TMP}"
    cat "${TMP}" > "${SRCPATH}/debian/rules"
    rm "${TMP}"
 }
@@ -239,7 +239,10 @@ install_zone_file () {
       echo "	journal \"${TARGETNAME}.jnl\";" >> "${BIND_ZONE_FILE}"
       echo "};" >> "${BIND_ZONE_FILE}"
    fi
-   
+  
+   mkdir -p /var/lib/bind/
+   cp "${FILENAME}" "${TARGETNAME}"
+
    if [ "$(grep "cp -f ${FILENAME}" /etc/init.d/bind9 | wc -l)" -ne 0 ]; then
       notif "${FILENAME} already copied to ${TARGETNAME} in /etc/init.d/bind9, nothing to do..."
    else

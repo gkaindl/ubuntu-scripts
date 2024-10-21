@@ -97,6 +97,11 @@ fetch_dnsextd () {
 build_dnsextd () {
 	cd "${DDIR}/mdns-patched/mDNSPosix"
 
+	# I had some problems (segfaults) on certain Linux plaforms when building with -Os, so we replace
+	# that to -O0 here, just to be safest.
+	sed 's/\-Os/\-O0/' Makefile > m.mod
+	mv m.mod Makefile
+
 	if [ "$?" -ne 0 ]; then
 		fail "unexpected directory structure in git checkout – maybe the project changed significantly?"
 	fi
@@ -132,6 +137,11 @@ update_bind_options () {
 	
 	cat "${TMP}" > /etc/bind/named.conf.options
 	rm "${TMP}"
+
+	SERVICE=$(which service)
+	if [ ! -z "$SERVICE" ]; then
+		$SERIVCE named restart
+	fi
 }
 
 install_dnsextd_config () {
@@ -167,6 +177,7 @@ install_dnsextd_initd_and_upstart () {
 		notif "init script at /etc/init.d/dnsextd already exists, so not touching it..."
 	else
 		cat > /etc/init.d/dnsextd <<-"EOF"
+			#!/bin/sh
 			# PROVIDE: dnsextd
 			# REQUIRE: NETWORKING
 			
@@ -250,8 +261,8 @@ install_dnsextd_initd_and_upstart () {
 				respawn
 				console none
 				
-				start on started bind9
-				stop on stopped bind9
+				start on ( started named or started bind9 )
+				stop on ( stopped named or stopped bind9 )
 				
 				pre-start exec /etc/init.d/dnsextd start
 				post-stop exec /etc/init.d/dnsextd stop
@@ -260,9 +271,29 @@ install_dnsextd_initd_and_upstart () {
 		
 		if [ -f /etc/init/bind9.conf ]; then
 			update-rc.d -f dnsextd remove > /dev/null 2>&1
+			systemctl enable dnsextd.service
 		else
 			notif "upstart job for bind9 doesn't exist, but we depend on it, so not removing dnsextd from init.d boot scripts..."
 		fi
+	fi
+}
+
+disable_systemd_dns_stub () {
+
+        if [ -f "/etc/systemd/resolved.conf" ]; then
+        	notif "disabling systemd DNS stub in /etc/systemd/resolved.conf..."
+
+		exists=$(grep -E '^DNSStubListener=no$' /etc/systemd/resolved.conf)
+		if [ -z "$exists" ]; then
+			echo "DNSStubListener=no" >> /etc/systemd/resolved.conf
+			if [ ! -z "$(which systemctl)" ]; then
+				systemctl daemon-reload
+			fi
+		else
+			notif "\tstub already disabled, nothing to do."
+		fi
+        else
+                notif "/etc/systemd/resolved.conf doesn't exist, nothing to do..."
 	fi
 }
 
@@ -274,6 +305,7 @@ install_dnsextd
 update_bind_options
 install_dnsextd_config
 install_dnsextd_initd_and_upstart
+disable_systemd_dns_stub
 clean_up
 
 if [ "yes" = "${HAS_DNSEXTDCONF_SAMPLE}" ]; then

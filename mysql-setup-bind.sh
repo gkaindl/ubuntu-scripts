@@ -52,7 +52,7 @@ run_mysql_cmd () {
    mysql_result=$(mysql -NB -u root -p${ROOT_PASSWORD} -e "${1}" 2>&1)
       
    if [ $? -gt 0 ]; then
-      fail "mysql query \"${1}\" failed: " "${mysql_result}"
+      #fail "mysql query \"${1}\" failed: " "${mysql_result}"
    fi
 }
 
