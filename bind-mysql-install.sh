@@ -375,7 +375,7 @@ add_bind_options () {
 }
 
 checks
-install_debian_packages "dpkg-dev" "libmysqlclient-dev"
+install_debian_packages "dpkg-dev" "libmysqlclient-dev" "dns-root-data"
 retrieve_debian_source_packages "${BIND_PACKAGE}"
 patch_build_rules
 build_and_install_bind

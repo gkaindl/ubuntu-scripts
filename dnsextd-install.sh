@@ -140,7 +140,7 @@ update_bind_options () {
 
 	SERVICE=$(which service)
 	if [ ! -z "$SERVICE" ]; then
-		$SERIVCE named restart
+		$SERVICE named restart
 	fi
 }
 
@@ -287,7 +287,8 @@ disable_systemd_dns_stub () {
 		if [ -z "$exists" ]; then
 			echo "DNSStubListener=no" >> /etc/systemd/resolved.conf
 			if [ ! -z "$(which systemctl)" ]; then
-				systemctl daemon-reload
+				systemctl stop systemd-resolved
+				systemctl start systemd-resolved
 			fi
 		else
 			notif "\tstub already disabled, nothing to do."
